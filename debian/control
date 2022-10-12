@@ -1,0 +1,92 @@
+Source: mat2
+Section: utils
+Priority: optional
+Maintainer: Debian Privacy Tools Maintainers <pkg-privacy-maintainers@lists.alioth.debian.org>
+Uploaders: Georg Faerber <georg@debian.org>,
+           Jonas Meurer <jonas@freesources.org>,
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               ffmpeg,
+               gir1.2-gdkpixbuf-2.0,
+               gir1.2-poppler-0.18,
+               gir1.2-rsvg-2.0,
+               libimage-exiftool-perl,
+               python3-all,
+               python3-gi-cairo,
+               python3-mutagen,
+               python3-setuptools,
+Standards-Version: 4.6.0
+Homepage: https://0xacab.org/jvoisin/mat2
+Vcs-Git: https://salsa.debian.org/pkg-privacy-team/mat2.git
+Vcs-Browser: https://salsa.debian.org/pkg-privacy-team/mat2
+Rules-Requires-Root: no
+
+Package: mat2
+Breaks: mat (<< 0.8.0-2~)
+Replaces: mat (<< 0.8.0-2~)
+Architecture: all
+Depends: gir1.2-gdkpixbuf-2.0,
+         gir1.2-poppler-0.18,
+         gir1.2-rsvg-2.0,
+         libimage-exiftool-perl,
+         python3-gi-cairo,
+         python3-mutagen,
+         ${misc:Depends},
+         ${python3:Depends},
+Recommends: bubblewrap,
+            python3-nautilus,
+Suggests: ffmpeg,
+Description: Metadata anonymisation toolkit v2
+ Metadata consist of information that characterizes data. Metadata are
+ used to provide documentation for data products. In essence, metadata
+ answer who, what, when, where, why, and how about every facet of the
+ data that are being documented.
+ .
+ Metadata within a file can tell a lot about you. Cameras record data
+ about when a picture was taken and what camera was used. Office
+ documents like PDF or Office automatically adds author and company
+ information to documents and spreadsheets.
+ .
+ Maybe you don't want to disclose those information.
+ .
+ mat2 only removes metadata from your files, it does not anonymise their
+ content, nor can it handle watermarking, steganography, or any too
+ custom metadata field/system.
+ .
+ If you really want to be anonymous, use file formats that do not contain
+ any metadata, or better: use plain-text.
+ .
+ Formats supported to some extent are:
+    - Audio Interchange File Format (.aiff)
+    - Audio Video Interleave (.avi)
+    - Electronic Publication (.epub)
+    - Free Lossless Audio Codec (.flac)
+    - Graphics Interchange Format (.gif)
+    - Hypertext Markup Language (.html, .xhtml)
+    - Portable Network Graphics (PNG)
+    - JPEG (.jpeg, .jpg, ...)
+    - MPEG Audio (.mp3, .mp2, .mp1, .mpa)
+    - MPEG-4 (.mp4)
+    - Office Openxml (.docx, .pptx, .xlsx, ...)
+    - Ogg Vorbis (.ogg)
+    - Open Document (.odt, .odx, .ods, ...)
+    - Portable Document Fileformat (.pdf)
+    - Portable Pixmap Format (.ppm)
+    - Scalable Vector Graphics (.svg)
+    - Tape ARchive (.tar, .tar.bz2, .tar.gz, .tar.zx)
+    - Torrent (.torrent)
+    - Waveform Audio (.wav)
+    - Windows Media Video (.wmv)
+    - ZIP (.zip)
+ .
+ mat2 provides a command line tool, and graphical user interfaces
+ via a service menu for Dolphin, the default file manager of KDE, and
+ an extension for Nautilus, the default file manager of GNOME.
+
+Package: mat
+Depends: mat2,
+         ${misc:Depends},
+Architecture: all
+Section: oldlibs
+Description: Transitional package to migrate to mat2
+ This is a transitional package. It can safely be removed.

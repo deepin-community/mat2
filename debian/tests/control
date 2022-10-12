@@ -1,0 +1,7 @@
+# TODO: Test bubblewrap integration once the Debian CI infrastructure
+# provides systems with the 'isolation-machine' restriction.
+
+Test-Command: MAT2_GLOBAL_PATH_TESTSUITE= pytest-3
+Depends: @,
+         ffmpeg,
+         python3-pytest

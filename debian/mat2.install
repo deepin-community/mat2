@@ -1,0 +1,6 @@
+/usr/bin/mat2
+data/mat2.png /usr/share/icons/hicolor/512x512/apps/
+data/mat2.svg /usr/share/icons/hicolor/scalable/apps/
+
+dolphin/mat2.desktop /usr/share/kservices5/ServiceMenus/
+nautilus/mat2.py     /usr/share/nautilus-python/extensions/
