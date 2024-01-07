@@ -5,7 +5,7 @@ with open("README.md", encoding='utf-8') as fh:
 
 setuptools.setup(
     name="mat2",
-    version='0.12.2',
+    version='0.13.4',
     author="Julien (jvoisin) Voisin",
     author_email="julien.voisin+mat2@dustri.org",
     description="A handy tool to trash your metadata",
@@ -20,6 +20,7 @@ setuptools.setup(
         'pycairo',
     ],
     packages=setuptools.find_packages(exclude=('tests', )),
+    data_files = [('man/man1', ['doc/mat2.1'])],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Console",

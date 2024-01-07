@@ -175,14 +175,30 @@ class TestGetMeta(unittest.TestCase):
 
     def test_zip(self):
         with zipfile.ZipFile('./tests/data/dirty.zip', 'w') as zout:
-            zout.write('./tests/data/dirty.flac')
-            zout.write('./tests/data/dirty.docx')
-            zout.write('./tests/data/dirty.jpg')
+            zout.write('./tests/data/dirty.flac',
+                       compress_type = zipfile.ZIP_STORED)
+            zout.write('./tests/data/dirty.docx',
+                       compress_type = zipfile.ZIP_DEFLATED)
+            zout.write('./tests/data/dirty.jpg',
+                       compress_type = zipfile.ZIP_BZIP2)
+            zout.write('./tests/data/dirty.txt',
+                       compress_type = zipfile.ZIP_LZMA)
         p, mimetype = parser_factory.get_parser('./tests/data/dirty.zip')
         self.assertEqual(mimetype, 'application/zip')
         meta = p.get_meta()
         self.assertEqual(meta['tests/data/dirty.flac']['comments'], 'Thank you for using MAT !')
         self.assertEqual(meta['tests/data/dirty.docx']['word/media/image1.png']['Comment'], 'This is a comment, be careful!')
+
+        with zipfile.ZipFile('./tests/data/dirty.zip') as zipin:
+            members = {
+                'tests/data/dirty.flac' : zipfile.ZIP_STORED,
+                'tests/data/dirty.docx': zipfile.ZIP_DEFLATED,
+                'tests/data/dirty.jpg' : zipfile.ZIP_BZIP2,
+                'tests/data/dirty.txt' : zipfile.ZIP_LZMA,
+            }
+            for k, v in members.items():
+                self.assertEqual(zipin.getinfo(k).compress_type, v)
+
         os.remove('./tests/data/dirty.zip')
 
     def test_wmv(self):
@@ -234,6 +250,12 @@ class TestGetMeta(unittest.TestCase):
         p = audio.AIFFParser('./tests/data/dirty.aiff')
         meta = p.get_meta()
         self.assertEqual(meta['Name'], 'I am so')
+
+    def test_heic(self):
+        p = images.HEICParser('./tests/data/dirty.heic')
+        meta = p.get_meta()
+        self.assertEqual(meta['ProfileCopyright'], 'Public Domain')
+        self.assertEqual(meta['ProfileDescription'], 'GIMP built-in sRGB')
 
 
 class TestRemovingThumbnails(unittest.TestCase):
@@ -413,7 +435,7 @@ class TestCleaning(unittest.TestCase):
             'name': 'gif',
             'parser': images.GIFParser,
             'meta': {'Comment': 'this is a test comment'},
-            'expected_meta': {},
+            'expected_meta': {'TransparentColor': '5'},
         },{
             'name': 'css',
             'parser': web.CSSParser,
@@ -429,7 +451,10 @@ class TestCleaning(unittest.TestCase):
             'meta': {
                 'WorkDescription': "This is a test svg image for mat2's testsuite",
             },
-            'expected_meta': {},
+            'expected_meta': {
+                'ImageSize': '128x128',
+                'Megapixels': '0.016',
+            },
         } ,{
             'name': 'ppm',
             'parser': images.PPMParser,
@@ -455,18 +480,23 @@ class TestCleaning(unittest.TestCase):
             'expected_meta': {
                 'AverageBitrate': 465641,
                 'BufferSize': 0,
-                'CompatibleBrands': ['isom', 'iso2', 'avc1', 'mp41'],
+                'ColorPrimaries': 'BT.709',
+                'ColorProfiles': 'nclx',
                 'ColorRepresentation': 'nclx 1 1 1',
+                'CompatibleBrands': ['isom', 'iso2', 'avc1', 'mp41'],
                 'CompressorID': 'avc1',
+                'CompressorName': 'JVT/AVC Coding',
                 'GraphicsMode': 'srcCopy',
                 'HandlerDescription': 'SoundHandler',
                 'HandlerType': 'Metadata',
                 'HandlerVendorID': 'Apple',
                 'MajorBrand': 'Base Media v1 [IS0 14496-12:2003]',
+                'MatrixCoefficients': 'BT.709',
                 'MaxBitrate': 465641,
                 'MediaDataOffset': 48,
                 'MediaDataSize': 379872,
                 'MediaHeaderVersion': 0,
+                'MediaLanguageCode': 'eng',
                 'MinorVersion': '0.2.0',
                 'MovieDataOffset': 48,
                 'MovieHeaderVersion': 0,
@@ -476,7 +506,9 @@ class TestCleaning(unittest.TestCase):
                 'TimeScale': 1000,
                 'TrackHeaderVersion': 0,
                 'TrackID': 1,
-                'TrackLayer': 0},
+                'TrackLayer': 0,
+                'TransferCharacteristics': 'BT.709',
+            },
         },{
             'name': 'wmv',
             'ffmpeg': 1,
@@ -485,44 +517,52 @@ class TestCleaning(unittest.TestCase):
                 'EncodingSettings': 'Lavf52.103.0',
             },
             'expected_meta': {},
+        },{
+            'name': 'heic',
+            'parser': images.HEICParser,
+            'meta': {},
+            'expected_meta': {},
         }
         ]
 
     def test_all_parametred(self):
         for case in self.data:
-            if 'ffmpeg' in case:
-                try:
-                    video._get_ffmpeg_path()
-                except RuntimeError:
-                    raise unittest.SkipTest
+            with self.subTest(case=case):
+                if 'ffmpeg' in case:
+                    try:
+                        video._get_ffmpeg_path()
+                    except RuntimeError:
+                        raise unittest.SkipTest
 
-            print('[+] Testing %s' % case['name'])
-            target = './tests/data/clean.' + case['name']
-            shutil.copy('./tests/data/dirty.' + case['name'], target)
-            p1 = case['parser'](target)
+                print('[+] Testing %s' % case['name'])
+                target = './tests/data/clean.' + case['name']
+                shutil.copy('./tests/data/dirty.' + case['name'], target)
+                p1 = case['parser'](target)
 
-            for k, v in p1.get_meta().items():
-                if k not in case['meta']:
-                    continue
-                if isinstance(v, dict):
-                    for _k, _v in v.items():
-                        if _k in case['meta'][k]:
-                            self.assertEqual(_v, case['meta'][k][_k])
-                else:
-                    self.assertEqual(v, case['meta'][k])
+                for k, v in p1.get_meta().items():
+                    if k not in case['meta']:
+                        continue
+                    if isinstance(v, dict):
+                        for _k, _v in v.items():
+                            if _k in case['meta'][k]:
+                                self.assertEqual(_v, case['meta'][k][_k])
+                    else:
+                        self.assertEqual(v, case['meta'][k])
 
-            p1.lightweight_cleaning = True
-            self.assertTrue(p1.remove_all())
+                p1.lightweight_cleaning = True
+                self.assertTrue(p1.remove_all())
 
-            p2 = case['parser'](p1.output_filename)
-            for k, v in p2.get_meta().items():
-                self.assertIn(k, case['expected_meta'])
-                self.assertIn(str(case['expected_meta'][k]), str(v))
-            self.assertTrue(p2.remove_all())
+                p2 = case['parser'](p1.output_filename)
+                meta = p2.get_meta()
+                if meta:
+                    for k, v in p2.get_meta().items():
+                        self.assertIn(k, case['expected_meta'], '"%s" is not in "%s" (%s)' % (k, case['expected_meta'], case['name']))
+                        self.assertIn(str(case['expected_meta'][k]), str(v))
+                self.assertTrue(p2.remove_all())
 
-            os.remove(target)
-            os.remove(p1.output_filename)
-            os.remove(p2.output_filename)
+                os.remove(target)
+                os.remove(p1.output_filename)
+                os.remove(p2.output_filename)
 
 
     def test_html(self):
@@ -595,9 +635,14 @@ class TestCleaning(unittest.TestCase):
 class TestCleaningArchives(unittest.TestCase):
     def test_zip(self):
         with zipfile.ZipFile('./tests/data/dirty.zip', 'w') as zout:
-            zout.write('./tests/data/dirty.flac')
-            zout.write('./tests/data/dirty.docx')
-            zout.write('./tests/data/dirty.jpg')
+            zout.write('./tests/data/dirty.flac',
+                       compress_type = zipfile.ZIP_STORED)
+            zout.write('./tests/data/dirty.docx',
+                       compress_type = zipfile.ZIP_DEFLATED)
+            zout.write('./tests/data/dirty.jpg',
+                       compress_type = zipfile.ZIP_BZIP2)
+            zout.write('./tests/data/dirty.txt',
+                       compress_type = zipfile.ZIP_LZMA)
         p = archive.ZipParser('./tests/data/dirty.zip')
         meta = p.get_meta()
         self.assertEqual(meta['tests/data/dirty.docx']['word/media/image1.png']['Comment'], 'This is a comment, be careful!')
@@ -608,6 +653,16 @@ class TestCleaningArchives(unittest.TestCase):
         p = archive.ZipParser('./tests/data/dirty.cleaned.zip')
         self.assertEqual(p.get_meta(), {})
         self.assertTrue(p.remove_all())
+
+        with zipfile.ZipFile('./tests/data/dirty.zip') as zipin:
+            members = {
+                'tests/data/dirty.flac' : zipfile.ZIP_STORED,
+                'tests/data/dirty.docx': zipfile.ZIP_DEFLATED,
+                'tests/data/dirty.jpg' : zipfile.ZIP_BZIP2,
+                'tests/data/dirty.txt' : zipfile.ZIP_LZMA,
+            }
+            for k, v in members.items():
+                self.assertEqual(zipin.getinfo(k).compress_type, v)
 
         os.remove('./tests/data/dirty.zip')
         os.remove('./tests/data/dirty.cleaned.zip')

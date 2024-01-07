@@ -4,8 +4,14 @@ The main repository for mat2 is on [0xacab]( https://0xacab.org/jvoisin/mat2 ),
 but you can send patches to jvoisin by [email](https://dustri.org/) if you prefer.
 
 Do feel free to pick up [an issue]( https://0xacab.org/jvoisin/mat2/issues )
-and to send a pull-request. Please do check that everything is fine by running the
-testsuite with `python3 -m unittest discover -v` before submitting one :)
+and to send a pull-request.
+
+Before sending the pull-request, please do check that everything is fine by
+running the full test suite in GitLab. To do that, after forking mat2 in GitLab,
+you need to go in Settings -> CI/CD -> Runner and there enable shared runners.
+
+Mat2 also has unit tests (that are also run in the full test suite). You can run
+them with `python3 -m unittest discover -v`.
 
 If you're fixing a bug or adding a new feature, please add tests accordingly,
 this will greatly improve the odds of your merge-request getting merged.
@@ -24,15 +30,16 @@ Since mat2 is written in Python3, please conform as much as possible to the
 1. Update the [changelog](https://0xacab.org/jvoisin/mat2/blob/master/CHANGELOG.md)
 2. Update the version in the [mat2](https://0xacab.org/jvoisin/mat2/blob/master/mat2) file
 3. Update the version in the [setup.py](https://0xacab.org/jvoisin/mat2/blob/master/setup.py) file
-4. Update the version and date in the [man page](https://0xacab.org/jvoisin/mat2/blob/master/doc/mat2.1)
-5. Commit the changelog, man page, mat2 and setup.py files
-6. Create a tag with `git tag -s $VERSION`
-7. Push the commit with `git push origin master`
-8. Push the tag with `git push --tags`
-9. Download the gitlab archive of the release
-10. Diff it against the local copy
-11. If there is no difference, sign the archive with `gpg --armor --detach-sign mat2-$VERSION.tar.xz`
-12. Upload the signature on Gitlab's [tag page](https://0xacab.org/jvoisin/mat2/tags) and add the changelog there
-13. Announce the release on the [mailing list](https://mailman.boum.org/listinfo/mat-dev)
-14. Sign'n'upload the new version on pypi with `python3 setup.py sdist bdist_wheel` then `twine upload -s dist/*`
-15. Do the secret release dance
+4. Update the version in the [pyproject.toml](https://0xacab.org/jvoisin/mat2/blob/master/yproject.toml) file
+5. Update the version and date in the [man page](https://0xacab.org/jvoisin/mat2/blob/master/doc/mat2.1)
+6. Commit the modified files
+7. Create a tag with `git tag -s $VERSION`
+8. Push the commit with `git push origin master`
+9. Push the tag with `git push --tags`
+10. Download the gitlab archive of the release
+11. Diff it against the local copy
+12. If there is no difference, sign the archive with `gpg --armor --detach-sign mat2-$VERSION.tar.xz`
+13. Upload the signature on Gitlab's [tag page](https://0xacab.org/jvoisin/mat2/tags) and add the changelog there
+14. Announce the release on the [mailing list](https://mailman.boum.org/listinfo/mat-dev)
+15. Sign'n'upload the new version on pypi with `python3 setup.py sdist bdist_wheel` then `twine upload -s dist/*`
+16. Do the secret release dance

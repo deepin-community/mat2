@@ -7,13 +7,9 @@ import tempfile
 import os
 import logging
 import shutil
-from typing import Dict, Set, Pattern, Union, Any, List
+from typing import Pattern, Union, Any, Set, Dict, List
 
 from . import abstract, UnknownMemberPolicy, parser_factory
-
-# Make pyflakes happy
-assert Set
-assert Pattern
 
 # pylint: disable=not-callable,assignment-from-no-return,too-many-branches
 
@@ -48,20 +44,20 @@ class ArchiveBasedAbstractParser(abstract.AbstractParser):
     def __init__(self, filename):
         super().__init__(filename)
         # We ignore typing here because mypy is too stupid
-        self.archive_class = None  #  type: ignore
-        self.member_class = None  #  type: ignore
+        self.archive_class = None  # type: ignore
+        self.member_class = None  # type: ignore
 
         # Those are the files that have a format that _isn't_
         # supported by mat2, but that we want to keep anyway.
-        self.files_to_keep = set()  # type: Set[Pattern]
+        self.files_to_keep: Set[Pattern] = set()
 
         # Those are the files that we _do not_ want to keep,
         # no matter if they are supported or not.
-        self.files_to_omit = set()  # type: Set[Pattern]
+        self.files_to_omit: Set[Pattern] = set()
 
         # what should the parser do if it encounters an unknown file in
         # the archive?
-        self.unknown_member_policy = UnknownMemberPolicy.ABORT  # type: UnknownMemberPolicy
+        self.unknown_member_policy: UnknownMemberPolicy = UnknownMemberPolicy.ABORT
 
         # The LGTM comment is to mask a false-positive,
         # see https://lgtm.com/projects/g/jvoisin/mat2/
@@ -73,20 +69,20 @@ class ArchiveBasedAbstractParser(abstract.AbstractParser):
     def _specific_cleanup(self, full_path: str) -> bool:
         """ This method can be used to apply specific treatment
         to files present in the archive."""
-        # pylint: disable=unused-argument,no-self-use
+        # pylint: disable=unused-argument
         return True  # pragma: no cover
 
     def _specific_get_meta(self, full_path: str, file_path: str) -> Dict[str, Any]:
         """ This method can be used to extract specific metadata
         from files present in the archive."""
-        # pylint: disable=unused-argument,no-self-use
+        # pylint: disable=unused-argument
         return {}  # pragma: no cover
 
     def _final_checks(self) -> bool:
         """ This method is invoked after the file has been cleaned,
         allowing to run final verifications.
         """
-        # pylint: disable=unused-argument,no-self-use
+        # pylint: disable=unused-argument
         return True
 
     @staticmethod
@@ -109,6 +105,11 @@ class ArchiveBasedAbstractParser(abstract.AbstractParser):
     def _get_member_name(member: ArchiveMember) -> str:
         """Return the name of the given member."""
 
+    @staticmethod
+    @abc.abstractmethod
+    def _is_dir(member: ArchiveMember) -> bool:
+        """Return true is the given member is a directory."""
+
     @abc.abstractmethod
     def _add_file_to_archive(self, archive: ArchiveClass, member: ArchiveMember,
                              full_path: str):
@@ -120,8 +121,20 @@ class ArchiveBasedAbstractParser(abstract.AbstractParser):
         # pylint: disable=unused-argument
         return member
 
-    def get_meta(self) -> Dict[str, Union[str, dict]]:
-        meta = dict()  # type: Dict[str, Union[str, dict]]
+    @staticmethod
+    def _get_member_compression(member: ArchiveMember):
+        """Get the compression of the archive member."""
+        # pylint: disable=unused-argument
+        return None
+
+    @staticmethod
+    def _set_member_compression(member: ArchiveMember, compression) -> ArchiveMember:
+        """Set the compression of the archive member."""
+        # pylint: disable=unused-argument
+        return member
+
+    def get_meta(self) -> Dict[str, Union[str, Dict]]:
+        meta: Dict[str, Union[str, Dict]] = dict()
 
         with self.archive_class(self.filename) as zin:
             temp_folder = tempfile.mkdtemp()
@@ -130,12 +143,17 @@ class ArchiveBasedAbstractParser(abstract.AbstractParser):
                 local_meta = self._get_member_meta(item)
                 member_name = self._get_member_name(item)
 
-                if member_name[-1] == '/':  # pragma: no cover
-                    # `is_dir` is added in Python3.6
+                if self._is_dir(item):  # pragma: no cover
                     continue  # don't keep empty folders
 
-                zin.extract(member=item, path=temp_folder)
                 full_path = os.path.join(temp_folder, member_name)
+                if not os.path.abspath(full_path).startswith(temp_folder):
+                    logging.error("%s contains a file (%s) pointing outside (%s) of its root.",
+                        self.filename, member_name, full_path)
+                    break
+
+                zin.extract(member=item, path=temp_folder)
+
                 os.chmod(full_path, stat.S_IRUSR)
 
                 specific_meta = self._specific_get_meta(full_path, member_name)
@@ -162,12 +180,12 @@ class ArchiveBasedAbstractParser(abstract.AbstractParser):
 
             # Sort the items to process, to reduce fingerprinting,
             # and keep them in the `items` variable.
-            items = list()  # type: List[ArchiveMember]
+            items: List[ArchiveMember] = list()
             for item in sorted(self._get_all_members(zin), key=self._get_member_name):
                 # Some fileformats do require to have the `mimetype` file
                 # as the first file in the archive.
                 if self._get_member_name(item) == 'mimetype':
-                    items = [item] + items
+                    items.insert(0, item)
                 else:
                     items.append(item)
 
@@ -175,18 +193,36 @@ class ArchiveBasedAbstractParser(abstract.AbstractParser):
             # we're iterating (and thus inserting) them in lexicographic order.
             for item in items:
                 member_name = self._get_member_name(item)
-                if member_name[-1] == '/':  # `is_dir` is added in Python3.6
+                if self._is_dir(item):
                     continue  # don't keep empty folders
 
-                zin.extract(member=item, path=temp_folder)
                 full_path = os.path.join(temp_folder, member_name)
+                if not os.path.abspath(full_path).startswith(temp_folder):
+                    logging.error("%s contains a file (%s) pointing outside (%s) of its root.",
+                            self.filename, member_name, full_path)
+                    abort = True
+                    break
 
-                original_permissions = os.stat(full_path).st_mode
+                zin.extract(member=item, path=temp_folder)
+
+                try:
+                    original_permissions = os.stat(full_path).st_mode
+                except FileNotFoundError:
+                    logging.error("Something went wrong during processing of "
+                            "%s in %s, likely a path traversal attack.",
+                            member_name, self.filename)
+                    abort = True
+                    # we're breaking instead of continuing, because this exception
+                    # is raised in case of weird path-traversal-like atttacks.
+                    break
+
                 os.chmod(full_path, original_permissions | stat.S_IWUSR | stat.S_IRUSR)
 
+                original_compression = self._get_member_compression(item)
+
                 if self._specific_cleanup(full_path) is False:
-                    logging.warning("Something went wrong during deep cleaning of %s",
-                                    member_name)
+                    logging.warning("Something went wrong during deep cleaning of %s in %s",
+                                    member_name, self.filename)
                     abort = True
                     continue
 
@@ -223,6 +259,7 @@ class ArchiveBasedAbstractParser(abstract.AbstractParser):
 
                 zinfo = self.member_class(member_name)  # type: ignore
                 zinfo = self._set_member_permissions(zinfo, original_permissions)
+                zinfo = self._set_member_compression(zinfo, original_compression)
                 clean_zinfo = self._clean_member(zinfo)
                 self._add_file_to_archive(zout, clean_zinfo, full_path)
 
@@ -237,6 +274,7 @@ class ArchiveBasedAbstractParser(abstract.AbstractParser):
 
 class TarParser(ArchiveBasedAbstractParser):
     mimetypes = {'application/x-tar'}
+
     def __init__(self, filename):
         super().__init__(filename)
         # yes, it's tarfile.open and not tarfile.TarFile,
@@ -346,6 +384,11 @@ class TarParser(ArchiveBasedAbstractParser):
         member.mode = permissions
         return member
 
+    @staticmethod
+    def _is_dir(member: ArchiveMember) -> bool:
+        assert isinstance(member, tarfile.TarInfo)  # please mypy
+        return member.isdir()
+
 
 class TarGzParser(TarParser):
     compression = ':gz'
@@ -364,16 +407,17 @@ class TarXzParser(TarParser):
 
 class ZipParser(ArchiveBasedAbstractParser):
     mimetypes = {'application/zip'}
-    def __init__(self, filename):
+
+    def __init__(self, filename: str):
         super().__init__(filename)
         self.archive_class = zipfile.ZipFile
         self.member_class = zipfile.ZipInfo
-        self.zip_compression_type = zipfile.ZIP_DEFLATED
 
     def is_archive_valid(self):
         try:
-            zipfile.ZipFile(self.filename)
-        except zipfile.BadZipFile:
+            with zipfile.ZipFile(self.filename):
+                pass
+        except (zipfile.BadZipFile, OSError):
             raise ValueError
 
     @staticmethod
@@ -409,7 +453,7 @@ class ZipParser(ArchiveBasedAbstractParser):
         assert isinstance(member, zipfile.ZipInfo)  # please mypy
         with open(full_path, 'rb') as f:
             archive.writestr(member, f.read(),
-                             compress_type=self.zip_compression_type)
+                             compress_type=member.compress_type)
 
     @staticmethod
     def _get_all_members(archive: ArchiveClass) -> List[ArchiveMember]:
@@ -420,3 +464,19 @@ class ZipParser(ArchiveBasedAbstractParser):
     def _get_member_name(member: ArchiveMember) -> str:
         assert isinstance(member, zipfile.ZipInfo)  # please mypy
         return member.filename
+
+    @staticmethod
+    def _get_member_compression(member: ArchiveMember):
+        assert isinstance(member, zipfile.ZipInfo)  # please mypy
+        return member.compress_type
+
+    @staticmethod
+    def _set_member_compression(member: ArchiveMember, compression) -> ArchiveMember:
+        assert isinstance(member, zipfile.ZipInfo)  # please mypy
+        member.compress_type = compression
+        return member
+
+    @staticmethod
+    def _is_dir(member: ArchiveMember) -> bool:
+        assert isinstance(member, zipfile.ZipInfo)  # please mypy
+        return member.is_dir()

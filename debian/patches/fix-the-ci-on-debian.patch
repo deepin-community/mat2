@@ -1,0 +1,20 @@
+From: jvoisin <julien.voisin@dustri.org>
+Date: Wed, 8 Nov 2023 15:28:08 +0100
+X-Dgit-Generated: 0.13.4-2.1 dc2618f8783397cf03cce6360e8bf90f5f75b284
+Subject: Fix the CI on Debian
+
+
+---
+
+diff --git a/tests/test_libmat2.py b/tests/test_libmat2.py
+index ee43fba..c64e4cb 100644
+--- a/tests/test_libmat2.py
++++ b/tests/test_libmat2.py
+@@ -508,6 +508,7 @@ class TestCleaning(unittest.TestCase):
+                 'TrackID': 1,
+                 'TrackLayer': 0,
+                 'TransferCharacteristics': 'BT.709',
++                'VideoFullRangeFlag': 0,
+             },
+         },{
+             'name': 'wmv',

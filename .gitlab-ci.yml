@@ -1,5 +1,7 @@
 variables:
   CONTAINER_REGISTRY: $CI_REGISTRY/georg/mat2-ci-images
+  GIT_DEPTH: "5"
+  GIT_STRATEGY: clone
 
 stages:
   - linting
@@ -9,43 +11,23 @@ stages:
   before_script:  # This is needed to not run the testsuite as root
     - useradd --home-dir ${CI_PROJECT_DIR} mat2
     - chown -R mat2 .
-
-linting:bandit:
-  image: $CONTAINER_REGISTRY:linting 
-  stage: linting
-  script:  # TODO: remove B405 and B314
-    - bandit ./mat2 --format txt --skip B101
-    - bandit -r ./nautilus/ --format txt --skip B101
-    - bandit -r ./libmat2 --format txt --skip B101,B404,B603,B405,B314,B108,B311
-
-linting:codespell:
-  image: $CONTAINER_REGISTRY:linting
-  stage: linting
-  script:
-    # Run codespell to check for spelling errors; ignore errors about binary
-    # files, use a config with ignored words and exclude the git directory,
-    # which might contain false positives
-    - codespell -q 2 -I utils/ci/codespell/ignored_words.txt -S .git
   
-linting:pylint:
+linting:ruff:
   image: $CONTAINER_REGISTRY:linting
   stage: linting
   script:
-    - pylint --disable=no-else-return,no-else-raise,no-else-continue,unnecessary-comprehension,raise-missing-from,unsubscriptable-object --extension-pkg-whitelist=cairo,gi ./libmat2 ./mat2
-    # Once nautilus-python is in Debian, decomment it form the line below
-    - pylint --disable=no-else-return,no-else-raise,no-else-continue,unnecessary-comprehension,raise-missing-from,unsubscriptable-object --extension-pkg-whitelist=Nautilus,GObject,Gtk,Gio,GLib,gi ./nautilus/mat2.py
-
-linting:pyflakes:
-  image: $CONTAINER_REGISTRY:linting
-  stage: linting
-  script:
-    - pyflakes3 ./libmat2 ./mat2 ./tests/ ./nautilus
+    - apt update
+    - apt install -qqy --no-install-recommends python3-venv
+    - python3 -m venv venv
+    - source venv/bin/activate
+    - pip3 install ruff
+    - ruff check .
 
 linting:mypy:
   image: $CONTAINER_REGISTRY:linting
   stage: linting
   script:
-    - mypy --ignore-missing-imports mat2 libmat2/*.py ./nautilus/mat2.py
+    - mypy --ignore-missing-imports mat2 libmat2/*.py
 
 tests:archlinux:
   image: $CONTAINER_REGISTRY:archlinux
@@ -56,9 +38,11 @@ tests:archlinux:
 tests:debian:
   image: $CONTAINER_REGISTRY:debian
   stage: test
+  <<: *prepare_env
   script:
     - apt-get -qqy purge bubblewrap
-    - python3 -m unittest discover -v
+    - su - mat2 -c "python3-coverage run --branch -m unittest discover -s tests/"
+    - su - mat2 -c "python3-coverage report --fail-under=95 -m --include 'libmat2/*'"
 
 tests:debian_with_bubblewrap:
   image: $CONTAINER_REGISTRY:debian
@@ -66,8 +50,8 @@ tests:debian_with_bubblewrap:
   allow_failure: true
   <<: *prepare_env
   script:
-    - su - mat2 -c "python3-coverage run --branch -m unittest discover -s tests/"
-    - su - mat2 -c "python3-coverage report --fail-under=95 -m --include 'libmat2/*'"
+    - apt-get -qqy install bubblewrap
+    - python3 -m unittest discover -v
 
 tests:fedora:
   image: $CONTAINER_REGISTRY:fedora
@@ -81,3 +65,33 @@ tests:gentoo:
   <<: *prepare_env
   script:
     - su - mat2 -c "python3 -m unittest discover -v"
+
+tests:python3.7:
+  image: $CONTAINER_REGISTRY:python3.7
+  stage: test
+  script:
+    - python3 -m unittest discover -v
+
+tests:python3.8:
+  image: $CONTAINER_REGISTRY:python3.8
+  stage: test
+  script:
+    - python3 -m unittest discover -v
+
+tests:python3.9:
+  image: $CONTAINER_REGISTRY:python3.9
+  stage: test
+  script:
+    - python3 -m unittest discover -v
+
+tests:python3.10:
+  image: $CONTAINER_REGISTRY:python3.10
+  stage: test
+  script:
+    - python3 -m unittest discover -v
+
+tests:python3.11:
+  image: $CONTAINER_REGISTRY:python3.11
+  stage: test
+  script:
+    - python3 -m unittest discover -v
