@@ -1,3 +1,47 @@
+# 0.13.4 - 2023-08-02
+
+- Add documentation about mat2 on OSX
+- Make use of python3.7 constructs to simplify code
+- Use moderner type annotations
+- Harden get_meta in archive.py against variants of CVE-2022-35410 
+- Improve MSOffice document support
+- Package the manpage on pypi 
+
+# 0.13.3 - 2023-02-23
+
+- Fix a decorator argument
+
+# 0.13.2 - 2023-01-28
+
+- Fix a crash on some python versions
+
+# 0.13.1 - 2023-01-07
+
+- Improve xlsx support
+- Remove the Nautilus extension
+
+# 0.13.0 - 2022-07-06
+
+- Fix an arbitrary file read (CVE-2022-35410)
+- Add support for heic files 
+
+# 0.12.4 - 2022-04-30
+
+- Fix possible errors/crashes when processing multiple files
+  via the command line interface
+- Use a fixed PDF version for the output
+- Improve compatibility with modern versions of rsvg
+- Improve the robustness of the command line interface with
+  regard to control characters
+
+# 0.12.3 - 2022-01-06
+
+- Implement code for internationalization
+- Keep individual files compression type in zip files
+- Increase the robustness of mat2 against weird/corrupted files
+- Fix the dolphin integration
+- Add a fuzzer
+
 # 0.12.2 - 2021-08-29
 
 - Add support for aiff files

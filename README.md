@@ -1,13 +1,10 @@
 ```
  _____ _____ _____ ___
 |     |  _  |_   _|_  |  Keep your data,
-| | | |     | | | |  _|     trash your meta!
-|_|_|_|__|__| |_| |___|
+| | | | |_| | | | |  _|     trash your meta!
+|_|_|_|_| |_| |_| |___|
 
 ```
-
-This software is currently in **beta**, please don't use it for anything
-critical.
 
 # Metadata and privacy
 
@@ -25,9 +22,14 @@ Maybe you don't want to disclose those information.
 This is precisely the job of mat2: getting rid, as much as possible, of
 metadata.
 
-mat2 provides a command line tool, and graphical user interfaces via a service
-menu for Dolphin, the default file manager of KDE, and an extension for
-Nautilus, the default file manager of GNOME.
+mat2 provides:
+- a library called `libmat2`;
+- a command line tool called `mat2`,
+- a service menu for Dolphin, KDE's default file manager
+
+If you prefer a regular graphical user interface, you might be interested in
+[Metadata Cleaner](https://metadatacleaner.romainvigier.fr/), which is using
+`mat2` under the hood.
 
 # Requirements
 
@@ -98,6 +100,9 @@ example, with a file named "myfile.png" a cleaned version named
 It's possible to run mat2 as a web service, via
 [mat2-web](https://0xacab.org/jvoisin/mat2-web).
 
+If you're using WordPress, you might be interested in [wp-mat](https://git.autistici.org/noblogs/wp-mat)
+and [wp-mat-server](https://git.autistici.org/noblogs/wp-mat-server).
+
 ## Desktop GUI
 
 For GNU/Linux desktops, it's possible to use the
@@ -139,6 +144,8 @@ of the guarantee that mat2 won't modify the data of their files, there is the
 	watermarks from PDF.
 - [Scrambled Exif](https://f-droid.org/packages/com.jarsilio.android.scrambledeggsif/),
 	an open-source Android application to remove metadata from pictures.
+- [Dangerzone](https://dangerzone.rocks/), designed to sanitize harmful documents
+  into harmless ones.
 
 # Contact
 

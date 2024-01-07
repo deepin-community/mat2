@@ -2,7 +2,7 @@ import glob
 import os
 import mimetypes
 import importlib
-from typing import TypeVar, List, Tuple, Optional
+from typing import TypeVar, Optional, List, Tuple
 
 from . import abstract, UNSUPPORTED_EXTENSIONS
 
@@ -10,6 +10,10 @@ T = TypeVar('T', bound='abstract.AbstractParser')
 
 mimetypes.add_type('application/epub+zip', '.epub')
 mimetypes.add_type('application/x-dtbncx+xml', '.ncx')  # EPUB Navigation Control XML File
+
+# This should be removed after we move to python3.10
+# https://github.com/python/cpython/commit/20a5b7e986377bdfd929d7e8c4e3db5847dfdb2d
+mimetypes.add_type('image/heic', '.heic')
 
 
 def __load_all_parsers():

@@ -1,3 +1,125 @@
+mat2 (0.13.4-2.1) unstable; urgency=medium
+
+  [ jvoisin ]
+  * Fix the CI on Debian
+
+ -- Paul Gevers <elbrus@debian.org>  Mon, 01 Jan 2024 10:12:38 +0100
+
+mat2 (0.13.4-2) unstable; urgency=medium
+
+  * debian/patches:
+    - Add patch to drop data_files in setup.py. This was recently introduced
+      upstream to add the manpage to the PyPi package. However, it leads to a
+      lintian error. Besides, it's not required in our environment.
+
+ -- Georg Faerber <georg@debian.org>  Thu, 03 Aug 2023 15:18:19 +0000
+
+mat2 (0.13.4-1) unstable; urgency=medium
+
+  * New upstream version 0.13.4:
+    - Adjust expected metadata to fix autopkgtest with ffmpeg >= 6.0.
+      (Closes: #1042432).
+  * debian/control:
+    - Drop obsolete transitional package mat. (Closes: #1032719)
+  * debian/mat2.install:
+    - Drop obsolete listing of /usr/bin/mat2, as otherwise the build errors
+      out and leads to FTBFS.
+  * debian/patches:
+    - Drop obsolete patch to include version in pyproject file; applied
+      upstream.
+
+ -- Georg Faerber <georg@debian.org>  Thu, 03 Aug 2023 13:49:47 +0000
+
+mat2 (0.13.3-1) unstable; urgency=medium
+
+  * New upstream version 0.13.3.
+  * debian/patches:
+    - Add patch to add version information to pyproject file.
+
+ -- Georg Faerber <georg@debian.org>  Sun, 26 Feb 2023 11:46:33 +0000
+
+mat2 (0.13.2-1) unstable; urgency=medium
+
+  * New upstream version 0.13.2.
+
+ -- Georg Faerber <georg@debian.org>  Sun, 29 Jan 2023 14:02:11 +0000
+
+mat2 (0.13.1-2) unstable; urgency=medium
+
+  * debian/control:
+    - Fix the description: don't mention the Nautilus extension anymore, but
+      instead tell about metadata-cleaner.
+
+ -- Georg Faerber <georg@debian.org>  Sun, 08 Jan 2023 17:13:04 +0000
+
+mat2 (0.13.1-1) unstable; urgency=medium
+
+  * New upstream version 0.13.1:
+    - Improve support of xlsx files.
+    - Remove the Nautilus extension.
+  * debian/control:
+    - Bump Standards-Version to 4.6.2, no changes required.
+    - Don't recommend python3-nautilus anymore.
+    - Instead, recommend metadata-cleaner, which should improve UX.
+  * debian/mat2.install:
+    - Drop the obsolete Nautilus extension.
+  * debian/patches:
+    - Drop obsolete patch to fix autopkgtest errors.
+
+ -- Georg Faerber <georg@debian.org>  Sun, 08 Jan 2023 13:14:40 +0000
+
+mat2 (0.13.0-2) unstable; urgency=medium
+
+  * Team upload.
+
+  [ Georg Faerber ]
+  * debian/control: Bump Standards-Version to 4.6.1, no changes required
+
+  [ Clément Hermann ]
+  * Add upstream patch to fix failing autopkgtests (Closes: #1021732)
+
+ -- Clément Hermann <nodens@debian.org>  Tue, 25 Oct 2022 10:57:30 +0200
+
+mat2 (0.13.0-1) unstable; urgency=medium
+
+  * New upstream version 0.13.0:
+    - Fix possibility of arbitrary file reads via zip archives.
+    - Add support of High Efficiency Image Format (HEIC) files.
+  * debian/control:
+    - Mention support of HEIC files in description.
+
+ -- Georg Faerber <georg@debian.org>  Thu, 07 Jul 2022 11:02:35 +0000
+
+mat2 (0.12.4-1) unstable; urgency=medium
+
+  * New upstream version 0.12.4:
+    - Fix possible errors/crashes when processing multiple files via the
+      command line interface.
+    - Use a fixed PDF version for the output.
+    - Improve compatibility with modern versions of rsvg.
+    - Improve the robustness of the command line interface with regard to
+      control characters.
+
+ -- Georg Faerber <georg@debian.org>  Sat, 07 May 2022 12:13:10 +0000
+
+mat2 (0.12.3-1) unstable; urgency=medium
+
+  * New upstream version 0.12.3:
+    - Implement code for internationalization.
+    - Keep individual files compression type in zip files.
+    - Increase the robustness of mat2 against weird and corrupted files.
+    - Fix the Dolphin integration.
+
+ -- Georg Faerber <georg@debian.org>  Tue, 15 Mar 2022 14:44:16 +0000
+
+mat2 (0.12.2-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Add patch to fix AssertionError in test_libmat2.
+    (Closes: #1002418)
+
+ -- Utkarsh Gupta <utkarsh@debian.org>  Tue, 18 Jan 2022 18:17:24 +0530
+
 mat2 (0.12.2-1) unstable; urgency=medium
 
   * New upstream version 0.12.2:

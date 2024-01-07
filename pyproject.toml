@@ -1,0 +1,10 @@
+[project]
+name = "mat"
+version = "0.13.4"
+readme = "README.md"
+requires-python = ">=3.9"
+
+[tool.ruff]
+target-version = "py39"
+# E501 Line too long
+ignore = ["E501", "F401", "E402", "E722"]

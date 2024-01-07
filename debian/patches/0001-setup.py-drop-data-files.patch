@@ -1,0 +1,21 @@
+Description: setup.py: drop data_files
+ This was added recently to add the manpage to the PyPi package. However, this
+ leads to a lintian error. In the Debian environment, the installation of the
+ manpage is already handled via a different method.
+Author: Georg Faerber <georg@debian.org>
+Forwarded: not-needed
+Last-Update: 2023-08-03
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+Index: mat2/setup.py
+===================================================================
+--- mat2.orig/setup.py	2023-08-03 14:22:07.995889740 +0000
++++ mat2/setup.py	2023-08-03 15:15:32.117192572 +0000
+@@ -20,7 +20,6 @@
+         'pycairo',
+     ],
+     packages=setuptools.find_packages(exclude=('tests', )),
+-    data_files = [('man/man1', ['doc/mat2.1'])],
+     classifiers=[
+         "Development Status :: 3 - Alpha",
+         "Environment :: Console",

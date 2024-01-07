@@ -1,11 +1,10 @@
 from html import parser, escape
-from typing import Dict, Any, List, Tuple, Set, Optional
+from typing import Any, Optional, Dict, List, Tuple, Set
 import re
 import string
 
 from . import abstract
 
-assert Set
 
 # pylint: disable=too-many-instance-attributes
 
@@ -45,10 +44,10 @@ class CSSParser(abstract.AbstractParser):
 
 
 class AbstractHTMLParser(abstract.AbstractParser):
-    tags_blocklist = set()  # type: Set[str]
+    tags_blocklist: Set[str] = set()
     # In some html/xml-based formats some tags are mandatory,
     # so we're keeping them, but are discarding their content
-    tags_required_blocklist = set()  # type: Set[str]
+    tags_required_blocklist: Set[str] = set()
 
     def __init__(self, filename):
         super().__init__(filename)
@@ -92,7 +91,7 @@ class _HTMLParser(parser.HTMLParser):
         self.filename = filename
         self.__textrepr = ''
         self.__meta = {}
-        self.__validation_queue = []  # type: List[str]
+        self.__validation_queue: List[str] = list()
 
         # We're using counters instead of booleans, to handle nested tags
         self.__in_dangerous_but_required_tag = 0
